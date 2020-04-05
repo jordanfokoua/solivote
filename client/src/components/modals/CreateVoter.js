@@ -18,8 +18,8 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 const CreateVoterDialog = ({ open, cancel, validate }) => {
-  const [name, setName] = useState("");
-  const handleNameChange = event => setName(event.target.value);
+  const [address, setAddress] = useState("");
+  const handleNameChange = event => setAddress(event.target.value);
 
   return (
     <div>
@@ -41,12 +41,12 @@ const CreateVoterDialog = ({ open, cancel, validate }) => {
               <Grid item xs={12}>
                 <TextField
                   onChange={handleNameChange}
-                  value={name}
+                  value={address}
                   id="title"
-                  label="Voter name"
+                  label="Voter address"
                   variant="outlined"
-                  placeholder="John Doe"
-                  helperText="The name of the candidate"
+                  placeholder="0x0AE189b5F03f32B4e632..."
+                  helperText="Blockchain address"
                   margin="normal"
                   required
                   fullWidth
@@ -59,7 +59,7 @@ const CreateVoterDialog = ({ open, cancel, validate }) => {
           <Button onClick={cancel} color="primary">
             Cancel
           </Button>
-          <Button onClick={ validate(name)} color="primary">
+          <Button onClick={ validate(address)} color="primary">
             Save
           </Button>
         </DialogActions>

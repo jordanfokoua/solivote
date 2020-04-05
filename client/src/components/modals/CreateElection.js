@@ -22,7 +22,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const CreateElectionDialog = ({ open, cancel, validate }) => {
+const CreateElectionDialog = ({ election, open, cancel, validate }) => {
   const [title, setTitle] = useState("");
   const handleTitleChange = event => setTitle(event.target.value);
   const [startDate, setStartDate] = useState(moment().format("YYYY-MM-DD"));
@@ -56,7 +56,7 @@ const CreateElectionDialog = ({ open, cancel, validate }) => {
               <Grid item xs={12}>
                 <TextField
                   onChange={handleTitleChange}
-                  value={title}
+                  value={election.title}
                   id="title"
                   label="Title"
                   variant="outlined"

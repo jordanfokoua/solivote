@@ -2,8 +2,7 @@ import React from "react";
 import {
   Route,
   BrowserRouter as Router,
-  Switch,
-  Redirect
+  Switch
 } from "react-router-dom";
 
 import Box from "@material-ui/core/Box";
@@ -23,11 +22,9 @@ class Navigation extends React.Component {
   }
 
   render() {
-    const { isAuth } = this.props;
-
     return (
       <Router>
-        <Box my={10}>
+        <Box>
           <Switch>
             <Route exact path="/" component={Home} />
             <Route path="/candidates" component={Candidates} />
