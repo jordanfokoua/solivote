@@ -2,8 +2,18 @@ import React from "react";
 
 import moment from "moment";
 
-import { Box, Grid, Typography } from "../components/materialComponents";
+import {
+  Box,
+  Grid,
+  Typography,
+  Button,
+} from "../components/materialComponents";
 import MediaCard from "../components/MediaCard";
+
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import FormControl from "@material-ui/core/FormControl";
+import Select from "@material-ui/core/Select";
 
 import { initVotingContract } from "../config/web3";
 
@@ -23,6 +33,8 @@ class Voters extends React.Component {
       },
       voted: false,
       candidates: [],
+      voters: [],
+      delegateTo: null,
     };
   }
 
@@ -32,6 +44,7 @@ class Voters extends React.Component {
         (state) => ({ ...state, ...response }),
         () => this.loadData(response.contract)
       );
+      this.getVoters();
     });
   };
 
@@ -75,7 +88,14 @@ class Voters extends React.Component {
   };
 
   render() {
-    const { web3, candidates, election, voted } = this.state;
+    const {
+      web3,
+      candidates,
+      election,
+      voted,
+      voters,
+      delegateTo,
+    } = this.state;
     const styles = {
       root: {
         display: "flex",
@@ -207,6 +227,38 @@ class Voters extends React.Component {
                         ))}
                     </Grid>
                   </Box>
+
+                  <Typography variant="h4" component="span">
+                    Delegate your vote to:
+                  </Typography>
+                  <Box display="flex" justifyContent="center">
+                    <FormControl style={{ minWidth: 450 }}>
+                      <InputLabel id="demo-simple-select-label">
+                        Voter's address
+                      </InputLabel>
+                      <Select
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={delegateTo}
+                        onChange={this.onChange}
+                      >
+                        {voters.map((voter, index) => (
+                          <MenuItem key={index} value={voter.voter_address}>
+                            {voter.voter_address}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      <Button
+                        style={{ marginTop: 10 }}
+                        variant="contained"
+                        color="primary"
+                        onClick={() => this.delegateVote()}
+                        disableElevation
+                      >
+                        Confirm
+                      </Button>
+                    </FormControl>
+                  </Box>
                 </Grid>
               </Grid>
             </Grid>
@@ -216,15 +268,63 @@ class Voters extends React.Component {
     );
   }
 
-  vote = (index) => () => {
+  onChange = (event) => {
+    const { value } = event.target;
+    this.setState((state) => ({
+      ...state,
+      delegateTo: value,
+    }));
+  };
+
+  getVoters = () => {
     const { accounts, contract } = this.state;
-    console.log("Voters -> vote -> accounts", accounts);
+    const voterList = [];
 
     contract.methods
-      .vote(index)
+      .getNumberVoters()
+      .call({ from: accounts[0] })
+      .then((voterCountResponse) => {
+        for (let i = 0; i < voterCountResponse; i++) {
+          contract.methods
+            .getVoter(i)
+            .call({ from: accounts[0] })
+            .then((response) => {
+              voterList.push(response);
+            });
+        }
+        this.setState((state) => ({ ...state, voters: voterList }));
+      });
+  };
+
+  vote = (index) => () => {
+    console.log("Voters -> vote -> index", index);
+    const { accounts, contract } = this.state;
+
+    contract.methods
+      .getNumberVoters()
+      .call({ from: accounts[0] })
+      .then((voterCountResponse) => {
+        if (voterCountResponse > 0) {
+          contract.methods
+            .vote(index)
+            .send({ from: accounts[0] })
+            .then((res) => {
+              this.setState((state) => ({
+                ...state,
+                voted: true,
+              }));
+            });
+        }
+      });
+  };
+
+  delegateVote = () => {
+    const { accounts, contract, delegateTo } = this.state;
+
+    contract.methods
+      .delegateVote(delegateTo)
       .send({ from: accounts[0] })
       .then((res) => {
-        console.log("Voters -> vote -> res", res);
         this.setState((state) => ({
           ...state,
           voted: true,
